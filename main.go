@@ -17,7 +17,7 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.StaticFile("/", "./public/index.html")
+	r.StaticFile("/", "./index.html")
 
 	r.Use(middleware.CORSMiddleware())
 
