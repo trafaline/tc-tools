@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Preview Checker - TC Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
+        <h1 class="text-2xl font-bold mb-6 text-center text-blue-400">URL Preview Checker</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1 text-gray-400">Website URL</label>
+                <input type="text" id="urlInput" placeholder="https://example.com" 
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white">
+            </div>
+            <button onclick="checkURL()" id="btnCheck"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-200">
+                Check Preview
+            </button>
+        </div>
+
+        <div id="loading" class="hidden mt-6 text-center">
+            <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        </div>
+
+        <div id="result" class="hidden mt-8 border-t border-gray-700 pt-6">
+            <img id="prevImage" src="" alt="Thumbnail" class="w-full h-48 object-cover rounded-lg mb-4 hidden">
+            <h2 id="prevTitle" class="text-xl font-bold text-blue-300"></h2>
+            <p id="prevSite" class="text-xs text-gray-500 uppercase tracking-widest mt-1"></p>
+            <p id="prevDesc" class="text-gray-400 text-sm mt-3"></p>
+        </div>
+
+        <div id="error" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-sm rounded-lg"></div>
+    </div>
+
+    <script>
+        async function checkURL() {
+            const url = document.getElementById('urlInput').value;
+            const btn = document.getElementById('btnCheck');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+
+            error.classList.add('hidden');
+            result.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/v1/url-preview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': '12345678910' 
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Something went wrong');
+
+                document.getElementById('prevTitle').innerText = data.title || 'No Title';
+                document.getElementById('prevDesc').innerText = data.description || 'No description available.';
+                document.getElementById('prevSite').innerText = data.site_name || 'Website';
+                
+                if (data.image) {
+                    const img = document.getElementById('prevImage');
+                    img.src = data.image;
+                    img.classList.remove('hidden');
+                }
+
+                result.classList.remove('hidden');
+            } catch (err) {
+                error.innerText = err.message;
+                error.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
