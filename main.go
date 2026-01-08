@@ -1,29 +1,35 @@
-package handler
+package main
 
 import (
-	"net/http"
+	"log"
+	"os"
 	"tc-tools/controllers"
 	"tc-tools/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-var r *gin.Engine
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-func init() {
-
-	gin.SetMode(gin.ReleaseMode)
-	r = gin.Default()
+	r := gin.Default()
 
 	r.Use(middleware.CORSMiddleware())
 
 	api := r.Group("/api/v1")
 	{
 		api.Use(middleware.AuthMiddleware())
+
 		api.POST("/url-preview", controllers.HandlePreview)
 	}
-}
 
-func Handler(w http.ResponseWriter, req *http.Request) {
-	r.ServeHTTP(w, req)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }
